@@ -8,8 +8,10 @@ import datetime
 import BatchDatsetReader as dataset
 from six.moves import xrange
 
+import pprint as pp
+
 FLAGS = tf.flags.FLAGS
-tf.flags.DEFINE_integer("batch_size", "2", "batch size for training")
+tf.flags.DEFINE_integer("batch_size", "1", "batch size for training")
 tf.flags.DEFINE_string("logs_dir", "logs/", "path to logs directory")
 tf.flags.DEFINE_string("data_dir", "Data_zoo/MIT_SceneParsing/", "path to dataset")
 tf.flags.DEFINE_float("learning_rate", "1e-4", "Learning rate for Adam Optimizer")
@@ -20,8 +22,8 @@ tf.flags.DEFINE_string('mode', "train", "Mode train/ test/ visualize")
 MODEL_URL = 'http://www.vlfeat.org/matconvnet/models/beta16/imagenet-vgg-verydeep-19.mat'
 
 MAX_ITERATION = int(1e5 + 1)
-NUM_OF_CLASSESS = 151
-IMAGE_SIZE = 224
+NUM_OF_CLASSESS = 10
+IMAGE_SIZE = 24
 
 
 def vgg_net(weights, image):
@@ -81,6 +83,7 @@ def inference(image, keep_prob):
 
     with tf.variable_scope("inference"):
         image_net = vgg_net(weights, processed_image)
+        pp.pprint(image_net)
         conv_final_layer = image_net["conv5_3"]
 
         pool5 = utils.max_pool_2x2(conv_final_layer)
@@ -198,7 +201,7 @@ def main(argv=None):
                 print("Step: %d, Train_loss:%g" % (itr, train_loss))
                 summary_writer.add_summary(summary_str, itr)
 
-            if itr % 500 == 0:
+            if itr % 100 == 0:
                 valid_images, valid_annotations = validation_dataset_reader.next_batch(FLAGS.batch_size)
                 valid_loss = sess.run(loss, feed_dict={image: valid_images, annotation: valid_annotations,
                                                        keep_probability: 1.0})
